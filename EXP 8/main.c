@@ -1,228 +1,275 @@
+
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 
-#define MAX_PRODUCTIONS 20
-#define MAX_RULE_LENGTH 100
-#define MAX_SET_SIZE 100
+#define MAX 20
 
-char production[MAX_PRODUCTIONS][MAX_RULE_LENGTH];
-char first[26][MAX_SET_SIZE];
-char follow[26][MAX_SET_SIZE];
+char production[MAX][MAX];
+char first[26][MAX];
+char follow[26][MAX];
 int n;
 
-int addToSet(char set[], char symbol)
+void addToSet(char set[], char symbol)
 {
-    for (int i = 0; set[i] != '\0'; i++) {
-        if (set[i] == symbol) {
-            return 0;
-        }
+    int i;
+
+    for (i = 0; set[i] != '\0'; i++)
+    {
+        if (set[i] == symbol)
+            return;
     }
 
-    int length = strlen(set);
-    if (length < MAX_SET_SIZE - 1) {
-        set[length] = symbol;
-        set[length + 1] = '\0';
-        return 1;
-    }
-
-    return 0;
+    set[i] = symbol;
+    set[i + 1] = '\0';
 }
 
-int isPresent(const char set[], char symbol)
+int isPresent(char set[], char symbol)
 {
-    for (int i = 0; set[i] != '\0'; i++) {
-        if (set[i] == symbol) {
+    int i;
+
+    for (i = 0; set[i] != '\0'; i++)
+    {
+        if (set[i] == symbol)
             return 1;
-        }
     }
+
     return 0;
 }
 
-/* Supports productions like A=... and A->... */
-int getRhsStart(const char rule[])
+int findFirst(char symbol)
 {
-    if (rule[1] == '-' && rule[2] == '>') {
-        return 3;
+    int i, j, changed = 0;
+    char rhs[MAX];
+
+    if (!isupper((unsigned char)symbol))
+    {
+        if (symbol == '#')
+            return 0;
+
+        addToSet(first[symbol - 'A'], symbol);
+        return 0;
     }
-    return 2;
-}
 
-void findFirst(void)
-{
-    int changed;
+    for (i = 0; i < n; i++)
+    {
+        if (production[i][0] != symbol)
+            continue;
 
-    do {
-        changed = 0;
+        strcpy(rhs, production[i] + 3);
 
-        for (int p = 0; p < n; p++) {
-            char lhs = production[p][0];
-            char *rhs = production[p] + getRhsStart(production[p]);
-            char *alternative = strtok(rhs, "|");
+        char *part = strtok(rhs, "|");
 
-            while (alternative != NULL) {
-                int nullable = 1;
+        while (part != NULL)
+        {
+            int epsilon = 1;
 
-                for (int i = 0; alternative[i] != '\0'; i++) {
-                    char symbol = alternative[i];
+            for (j = 0; part[j] != '\0'; j++)
+            {
+                char current = part[j];
 
-                    if (symbol == '#') {
-                        changed |= addToSet(first[lhs - 'A'], '#');
-                        nullable = 0;
-                        break;
-                    }
-
-                    if (!isupper((unsigned char)symbol)) {
-                        changed |= addToSet(first[lhs - 'A'], symbol);
-                        nullable = 0;
-                        break;
-                    }
-
-                    const char *symbolFirst = first[symbol - 'A'];
-                    for (int j = 0; symbolFirst[j] != '\0'; j++) {
-                        if (symbolFirst[j] != '#') {
-                            changed |= addToSet(first[lhs - 'A'], symbolFirst[j]);
-                        }
-                    }
-
-                    if (!isPresent(symbolFirst, '#')) {
-                        nullable = 0;
-                        break;
-                    }
+                if (current == '#')
+                {
+                    addToSet(first[symbol - 'A'], '#');
+                    break;
                 }
 
-                if (nullable) {
-                    changed |= addToSet(first[lhs - 'A'], '#');
+                if (!isupper((unsigned char)current))
+                {
+                    addToSet(first[symbol - 'A'], current);
+                    epsilon = 0;
+                    break;
                 }
 
-                alternative = strtok(NULL, "|");
+                findFirst(current);
+
+                for (int k = 0;
+                     first[current - 'A'][k] != '\0'; k++)
+                {
+                    char ch = first[current - 'A'][k];
+
+                    if (ch != '#')
+                        addToSet(first[symbol - 'A'], ch);
+                }
+
+                if (!isPresent(first[current - 'A'], '#'))
+                {
+                    epsilon = 0;
+                    break;
+                }
             }
+
+            if (epsilon)
+                addToSet(first[symbol - 'A'], '#');
+
+            part = strtok(NULL, "|");
         }
-    } while (changed);
+    }
+
+    return changed;
 }
 
-void findFollow(void)
+void findFollow(char symbol)
 {
-    addToSet(follow[production[0][0] - 'A'], '$');
+    int i, j, k;
+    char rhs[MAX];
 
-    int changed;
+    for (i = 0; i < n; i++)
+    {
+        strcpy(rhs, production[i] + 2);
 
-    do {
-        changed = 0;
+        char *part = strtok(rhs, "|");
 
-        for (int p = 0; p < n; p++) {
-            char lhs = production[p][0];
-            char *rhs = production[p] + getRhsStart(production[p]);
-            char *alternative = strtok(rhs, "|");
+        while (part != NULL)
+        {
+            for (j = 0; part[j] != '\0'; j++)
+            {
+                if (part[j] != symbol)
+                    continue;
 
-            while (alternative != NULL) {
-                int length = strlen(alternative);
+                if (part[j + 1] != '\0')
+                {
+                    char next = part[j + 1];
 
-                for (int i = 0; i < length; i++) {
-                    char current = alternative[i];
-
-                    if (!isupper((unsigned char)current)) {
-                        continue;
+                    if (!isupper((unsigned char)next))
+                    {
+                        if (next != '#')
+                            addToSet(follow[symbol - 'A'], next);
                     }
+                    else
+                    {
+                        int epsilon = 1;
 
-                    int suffixNullable = 1;
+                        for (k = j + 1; part[k] != '\0'; k++)
+                        {
+                            char current = part[k];
 
-                    for (int j = i + 1; j < length; j++) {
-                        char next = alternative[j];
+                            if (!isupper((unsigned char)current))
+                            {
+                                if (current != '#')
+                                    addToSet(
+                                        follow[symbol - 'A'], current);
 
-                        if (next == '#') {
-                            continue;
-                        }
+                                epsilon = 0;
+                                break;
+                            }
 
-                        if (!isupper((unsigned char)next)) {
-                            changed |= addToSet(follow[current - 'A'], next);
-                            suffixNullable = 0;
-                            break;
-                        }
+                            for (int x = 0;
+                                 first[current - 'A'][x] != '\0'; x++)
+                            {
+                                char ch = first[current - 'A'][x];
 
-                        const char *nextFirst = first[next - 'A'];
-                        for (int k = 0; nextFirst[k] != '\0'; k++) {
-                            if (nextFirst[k] != '#') {
-                                changed |= addToSet(follow[current - 'A'],
-                                                    nextFirst[k]);
+                                if (ch != '#')
+                                    addToSet(
+                                        follow[symbol - 'A'], ch);
+                            }
+
+                            if (!isPresent(first[current - 'A'], '#'))
+                            {
+                                epsilon = 0;
+                                break;
                             }
                         }
 
-                        if (!isPresent(nextFirst, '#')) {
-                            suffixNullable = 0;
-                            break;
-                        }
-                    }
-
-                    if (suffixNullable) {
-                        const char *lhsFollow = follow[lhs - 'A'];
-                        for (int k = 0; lhsFollow[k] != '\0'; k++) {
-                            changed |= addToSet(follow[current - 'A'],
-                                                lhsFollow[k]);
+                        if (epsilon && production[i][0] != symbol)
+                        {
+                            for (k = 0;
+                                 follow[production[i][0] - 'A'][k] != '\0';
+                                 k++)
+                            {
+                                addToSet(
+                                    follow[symbol - 'A'],
+                                    follow[production[i][0] - 'A'][k]);
+                            }
                         }
                     }
                 }
-
-                alternative = strtok(NULL, "|");
+                else if (production[i][0] != symbol)
+                {
+                    for (k = 0;
+                         follow[production[i][0] - 'A'][k] != '\0';
+                         k++)
+                    {
+                        addToSet(
+                            follow[symbol - 'A'],
+                            follow[production[i][0] - 'A'][k]);
+                    }
+                }
             }
+
+            part = strtok(NULL, "|");
+        }
+    }
+}
+
+int main()
+{
+    int i, j, changed;
+
+    printf("Enter number of productions: ");
+    scanf("%d", &n);
+
+    printf("Enter productions (example: E->TR|#):\n");
+
+    for (i = 0; i < n; i++)
+        scanf("%19s", production[i]);
+
+    for (i = 0; i < n; i++)
+        findFirst(production[i][0]);
+
+    /* Repeat FOLLOW calculation until sets stop changing */
+    addToSet(follow[production[0][0] - 'A'], '$');
+
+    do
+    {
+        changed = 0;
+
+        for (i = 0; i < n; i++)
+        {
+            char lhs = production[i][0];
+            char rhs[MAX];
+
+            strcpy(rhs, production[i] + 2);
+            char *part = strtok(rhs, "|");
+
+            while (part != NULL)
+            {
+                for (j = 0; part[j] != '\0'; j++)
+                {
+                    if (isupper((unsigned char)part[j]))
+                    {
+                        char before[MAX];
+                        strcpy(before, follow[part[j] - 'A']);
+
+                        findFollow(part[j]);
+
+                        if (strcmp(before, follow[part[j] - 'A']) != 0)
+                            changed = 1;
+                    }
+                }
+
+                part = strtok(NULL, "|");
+            }
+
+            (void)lhs;
         }
     } while (changed);
-}
 
-int isFirstOccurrence(int productionIndex)
-{
-    for (int i = 0; i < productionIndex; i++) {
-        if (production[i][0] == production[productionIndex][0]) {
-            return 0;
-        }
-    }
-    return 1;
-}
+    printf("\nFIRST sets:\n");
 
-void printSets(const char *label, char sets[26][MAX_SET_SIZE])
-{
-    printf("\n%s:\n", label);
-
-    for (int i = 0; i < n; i++) {
-        char symbol = production[i][0];
-
-        if (!isFirstOccurrence(i)) {
-            continue;
-        }
-
-        printf("%s(%c) = { ", label, symbol);
-
-        for (int j = 0; sets[symbol - 'A'][j] != '\0'; j++) {
-            printf("%c ", sets[symbol - 'A'][j]);
-        }
-
-        printf("}\n");
-    }
-}
-
-int main(void)
-{
-    printf("Enter number of productions: ");
-    if (scanf("%d", &n) != 1 || n < 1 || n > MAX_PRODUCTIONS) {
-        printf("Enter between 1 and %d productions.\n", MAX_PRODUCTIONS);
-        return 1;
+    for (i = 0; i < 26; i++)
+    {
+        if (first[i][0] != '\0')
+            printf("FIRST(%c) = { %s }\n", 'A' + i, first[i]);
     }
 
-    printf("\nEnter productions (e.g. A=BC|a|# or A->BC|a|#):\n");
+    printf("\nFOLLOW sets:\n");
 
-    for (int i = 0; i < n; i++) {
-        if (scanf("%99s", production[i]) != 1 ||
-            !isupper((unsigned char)production[i][0])) {
-            printf("Invalid production. The left-hand side must be uppercase.\n");
-            return 1;
-        }
+    for (i = 0; i < 26; i++)
+    {
+        if (follow[i][0] != '\0')
+            printf("FOLLOW(%c) = { %s }\n", 'A' + i, follow[i]);
     }
-
-    findFirst();
-    findFollow();
-
-    printSets("FIRST", first);
-    printSets("FOLLOW", follow);
 
     return 0;
 }
