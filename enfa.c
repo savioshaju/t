@@ -90,6 +90,9 @@ int main()
 
 
 /* Construct NFA without epsilon */
+
+/* Construct NFA without epsilon */
+
 for (i = 0; i < n; i++)
 {
     for (k = 0; k < symbols; k++)
@@ -102,13 +105,20 @@ for (i = 0; i < n; i++)
                 {
                     if (transition[k][s][t] == 1)
                     {
-                        newTransition[k][i][t] = 1;
+                        for (j = 0; j < n; j++)
+                        {
+                            if (closure[t][j] == 1)
+                            {
+                                newTransition[k][i][j] = 1;
+                            }
+                        }
                     }
                 }
             }
         }
     }
 }
+
 
     printf("\nNFA without epsilon transitions:\n");
 
