@@ -4,18 +4,28 @@
 %}
 
 %%
-[A-Za-z][A-Za-z0-9]* {
-    printf("%s : ",yytext);
-    return VALID;
+[A-Za-z] {
+    printf("%s",yytext);
+    return LETTER;
 }
 
-.+ {
-    printf("%s : ",yytext);
-    return INVALID;
+[0-9] {
+    printf("%s",yytext);
+    return NUMBER;
+}
+
+_ {
+    printf("%s",yytext);
+    return UNDERSCORE;
 }
 
 \n {
     return '\n';
+}
+
+. {
+    printf("%s",yytext);
+    return INVALID;
 }
 %%
 

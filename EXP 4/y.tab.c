@@ -544,7 +544,7 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    11,    11,    12,    15,    17
+       0,    13,    13,    14,    17,    20
 };
 #endif
 
@@ -1101,23 +1101,24 @@ yyreduce:
   switch (yyn)
     {
   case 4: /* line: VARIABLE '\n'  */
-#line 15 "variable.y"
+#line 17 "variable.y"
               {
+  
 printf("Valid Variable \n");
 }
-#line 1109 "y.tab.c"
+#line 1110 "y.tab.c"
     break;
 
   case 5: /* line: INVALID '\n'  */
-#line 17 "variable.y"
+#line 20 "variable.y"
                  {
 printf("Invalid Variable \n");
 }
-#line 1117 "y.tab.c"
+#line 1118 "y.tab.c"
     break;
 
 
-#line 1121 "y.tab.c"
+#line 1122 "y.tab.c"
 
       default: break;
     }
@@ -1310,7 +1311,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 20 "variable.y"
+#line 23 "variable.y"
 
 
 int yyerror(char *s) { printf("Error \n"); return 0;

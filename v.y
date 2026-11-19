@@ -5,32 +5,33 @@
     int yyerror(char *s);
 %}
 
-%token VALID
-%token INVALID
+%token LETTER NUMBER UNDERSCORE INVALID
 
 
 %%
-    input:
-    /* Empty */ | input line;
-
-    line:
-    VALID '\n' {
-        printf(" Valid\n");
-    } |
-    INVALID '\n'{
-        printf(" Invalid\n");
+input :
+    identifier '\n' {
+        printf(" : Valid Identifier\n");
     };
 
+identifier :
+    LETTER
+    | UNDERSCORE
+    | identifier LETTER
+    | identifier UNDERSCORE
+    | identifier NUMBER
+    ;
+
 
 %%
 
-int yyerror(char *s){
-    printf("Error");
-    return 0;
-}
 
 int main(){
     yyparse();
     return 0;
 
+}
+int yyerror(char *s){
+    printf("Invalid Identifier\n");
+    main();
 }
