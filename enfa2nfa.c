@@ -43,15 +43,12 @@ int main()
         }
     }
 
-    /* Find epsilon closure of every state */
     for (i = 0; i < n; i++)
     {
         findClosure(i, i);
     }
 
 
-
-    // NEW CODE: Read original final states
     printf("\nEnter final states (1 if final, 0 otherwise):\n");
 
     for (i = 0; i < n; i++)
@@ -60,7 +57,6 @@ int main()
         scanf("%d", &final[i]);
     }
 
-    // NEW CODE: Calculate final states of new NFA
     for (i = 0; i < n; i++)
     {
         for (j = 0; j < n; j++)
@@ -88,10 +84,6 @@ int main()
         }
     }
 
-
-/* Construct NFA without epsilon */
-
-/* Construct NFA without epsilon */
 
 for (i = 0; i < n; i++)
 {
