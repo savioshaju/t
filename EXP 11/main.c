@@ -1,23 +1,25 @@
+
 #include<stdio.h>
 #include<string.h>
 #include<ctype.h>
-char opera[100][100];
-char oprand[100];
 
-int top = -1;
-int optop = -1;
+char operandStack[100][100];
+char operatorStack[100];
+
+int operandTop = -1;
+int operatorTop = -1;
 int temp = 0;
 
-void gen(char op, char a[], char b[], char res[])
+void generate(char operator, char operand1[], char operand2[], char result[])
 {
-    printf("%s = %s %c %s\n", res, a, op, b);
+    printf("%s = %s %c %s\n", result, operand1, operator, operand2);
 }
 
-int pre(char op)
+int precedence(char operator)
 {
-    if(op == '*' || op == '/')
+    if(operator == '*' || operator == '/')
         return 3;
-    else if(op == '+' || op == '-')
+    else if(operator == '+' || operator == '-')
         return 2;
     else
         return 0;
@@ -25,76 +27,83 @@ int pre(char op)
 
 void main()
 {
-    char stg[100];
+    char expression[100];
 
     printf("Enter the input string : ");
-    scanf("%s", stg);
+    scanf("%s", expression);
 
-    for(int i = 0; stg[i] != '\0'; i++)
+    for(int i = 0; expression[i] != '\0'; i++)
     {
-        if(isalnum(stg[i]))
+        if(isalnum(expression[i]))
         {
-            top++;
-            opera[top][0] = stg[i];
-            opera[top][1] = '\0';
+            operandTop++;
+            operandStack[operandTop][0] = expression[i];
+            operandStack[operandTop][1] = '\0';
         }
 
-        else if(stg[i] == '(')
+        else if(expression[i] == '(')
         {
-            oprand[++optop] = stg[i];
+            operatorTop++;
+            operatorStack[operatorTop] = expression[i];
         }
 
-        else if(stg[i] == ')')
+        else if(expression[i] == ')')
         {
-            while(optop >= 0 && oprand[optop] != '(')
+            while(operatorTop >= 0 && operatorStack[operatorTop] != '(')
             {
-                char a[10], b[10], res[10];
+                char operand1[10], operand2[10], result[10];
 
-                strcpy(b, opera[top--]);
-                strcpy(a, opera[top--]);
+                strcpy(operand2, operandStack[operandTop--]);
+                strcpy(operand1, operandStack[operandTop--]);
 
-                sprintf(res, "t%d", temp++);
-                strcpy(opera[++top], res);
+                sprintf(result, "t%d", temp++);
+                strcpy(operandStack[++operandTop], result);
 
-                gen(oprand[optop--], a, b, res);
+                generate(operatorStack[operatorTop], operand1, operand2, result);
+
+                operatorTop--;
             }
 
-            optop--;
+            operatorTop--;
         }
 
         else
         {
-            while(optop >= 0 &&
-                  oprand[optop] != '(' &&
-                  pre(oprand[optop]) >= pre(stg[i]))
+            while(operatorTop >= 0 &&
+                  operatorStack[operatorTop] != '(' &&
+                  precedence(operatorStack[operatorTop]) >= precedence(expression[i]))
             {
-                char a[10], b[10], res[10];
+                char operand1[10], operand2[10], result[10];
 
-                strcpy(b, opera[top--]);
-                strcpy(a, opera[top--]);
+                strcpy(operand2, operandStack[operandTop--]);
+                strcpy(operand1, operandStack[operandTop--]);
 
-                sprintf(res, "t%d", temp++);
-                strcpy(opera[++top], res);
+                sprintf(result, "t%d", temp++);
+                strcpy(operandStack[++operandTop], result);
 
-                gen(oprand[optop--], a, b, res);
+                generate(operatorStack[operatorTop], operand1, operand2, result);
+
+                operatorTop--;
             }
 
-            oprand[++optop] = stg[i];
+            operatorStack[++operatorTop] = expression[i];
         }
     }
 
-    while(optop >= 0)
+    while(operatorTop >= 0)
     {
-        char a[10], b[10], res[10];
+        char operand1[10], operand2[10], result[10];
 
-        strcpy(b, opera[top--]);
-        strcpy(a, opera[top--]);
+        strcpy(operand2, operandStack[operandTop--]);
+        strcpy(operand1, operandStack[operandTop--]);
 
-        sprintf(res, "t%d", temp++);
-        strcpy(opera[++top], res);
+        sprintf(result, "t%d", temp++);
+        strcpy(operandStack[++operandTop], result);
 
-        gen(oprand[optop--], a, b, res);
+        generate(operatorStack[operatorTop], operand1, operand2, result);
+
+        operatorTop--;
     }
 
-    printf("Result = %s\n", opera[top]);
+    printf("Result = %s\n", operandStack[operandTop]);
 }
