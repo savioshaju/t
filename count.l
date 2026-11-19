@@ -3,6 +3,7 @@
     int line =0;
     int word = 0;
     int cha = 0;
+    int vowe =0 , const ;
 %}
 
 %%

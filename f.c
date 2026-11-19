@@ -6,7 +6,9 @@ char prod[100][100];
 
 void adds(char c,char result[]){
     int i = 0 ;
-    for(i = 0 ; result[i]!='\0' ; i ++){
+    for(i = 0 ; result[i]!='\0' ; i 
+        
+        ++){
         if(result[i] == c )
             return;
     }
@@ -61,13 +63,14 @@ void FOLLOW(char c,char result[]){
         adds('$',result);
     }
     for(int i = 0; i<n ; i++){
-        for(int  j = 2 ; j< n ;j++){
+        for(int  j = 2 ; prod[i][j] != '\0' ;j++){
             if(prod[i][j] == c){
                 int k  = j+1;
                 int epsi = 1;
 
                 while(prod[i][k]!='\0' && epsi){
                     char temp[100]="";
+
 
                     FIRST(prod[i][k],temp);
                     epsi =0;
@@ -80,7 +83,6 @@ void FOLLOW(char c,char result[]){
                         }
                     }
                     k++;
-
                 }
                 if(epsi && prod[i][0]!=c){
                     char temp[100]="";
