@@ -6,9 +6,7 @@ char prod[100][100];
 
 void adds(char c,char result[]){
     int i = 0 ;
-    for(i = 0 ; result[i]!='\0' ; i 
-        
-        ++){
+    for(i = 0 ; result[i]!='\0' ; i++){
         if(result[i] == c )
             return;
     }
@@ -70,7 +68,6 @@ void FOLLOW(char c,char result[]){
 
                 while(prod[i][k]!='\0' && epsi){
                     char temp[100]="";
-
 
                     FIRST(prod[i][k],temp);
                     epsi =0;

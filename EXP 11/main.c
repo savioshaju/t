@@ -1,114 +1,100 @@
-#include <stdio.h>
-#include <string.h>
+#include<stdio.h>
+#include<string.h>
+#include<ctype.h>
+char opera[100][100];
+char oprand[100];
 
-char stack[50][20];
 int top = -1;
-int temp = 1;
+int optop = -1;
+int temp = 0;
 
-void push(char str[])
+void gen(char op, char a[], char b[], char res[])
 {
-    top++;
-    strcpy(stack[top], str);
+    printf("%s = %s %c %s\n", res, a, op, b);
 }
 
-void pop(char str[])
+int pre(char op)
 {
-    strcpy(str, stack[top]);
-    top--;
-}
-
-int precedence(char op)
-{
-    if (op == '*' || op == '/')
+    if(op == '*' || op == '/')
+        return 3;
+    else if(op == '+' || op == '-')
         return 2;
-
-    if (op == '+' || op == '-')
-        return 1;
-
-    return 0;
+    else
+        return 0;
 }
 
-void generate(char op)
+void main()
 {
-    char a[20], b[20], result[20];
+    char stg[100];
 
-    pop(b);
-    pop(a);
+    printf("Enter the input string : ");
+    scanf("%s", stg);
 
-    sprintf(result, "t%d", temp);
-
-    printf("%s = %s %c %s\n", result, a, op, b);
-
-    push(result);
-
-    temp++;
-}
-
-int main()
-{
-    char expr[100];
-    char operators[50];
-    int optop = -1;
-    int i;
-
-    printf("Enter expression: ");
-    scanf("%s", expr);
-
-    printf("\nIntermediate Code:\n");
-
-    for (i = 0; expr[i] != '\0'; i++)
+    for(int i = 0; stg[i] != '\0'; i++)
     {
-        /* Operand */
-        if ((expr[i] >= 'a' && expr[i] <= 'z') ||
-            (expr[i] >= 'A' && expr[i] <= 'Z') ||
-            (expr[i] >= '0' && expr[i] <= '9'))
+        if(isalnum(stg[i]))
         {
-            char operand[2];
-
-            operand[0] = expr[i];
-            operand[1] = '\0';
-
-            push(operand);
+            top++;
+            opera[top][0] = stg[i];
+            opera[top][1] = '\0';
         }
 
-        /* Opening parenthesis */
-        else if (expr[i] == '(')
+        else if(stg[i] == '(')
         {
-            operators[++optop] = expr[i];
+            oprand[++optop] = stg[i];
         }
 
-        /* Closing parenthesis */
-        else if (expr[i] == ')')
+        else if(stg[i] == ')')
         {
-            while (optop >= 0 && operators[optop] != '(')
+            while(optop >= 0 && oprand[optop] != '(')
             {
-                generate(operators[optop--]);
+                char a[10], b[10], res[10];
+
+                strcpy(b, opera[top--]);
+                strcpy(a, opera[top--]);
+
+                sprintf(res, "t%d", temp++);
+                strcpy(opera[++top], res);
+
+                gen(oprand[optop--], a, b, res);
             }
 
             optop--;
         }
 
-        /* Operator */
         else
         {
-            while (optop >= 0 &&
-                   operators[optop] != '(' &&
-                   precedence(operators[optop]) >= precedence(expr[i]))
+            while(optop >= 0 &&
+                  oprand[optop] != '(' &&
+                  pre(oprand[optop]) >= pre(stg[i]))
             {
-                generate(operators[optop--]);
+                char a[10], b[10], res[10];
+
+                strcpy(b, opera[top--]);
+                strcpy(a, opera[top--]);
+
+                sprintf(res, "t%d", temp++);
+                strcpy(opera[++top], res);
+
+                gen(oprand[optop--], a, b, res);
             }
 
-            operators[++optop] = expr[i];
+            oprand[++optop] = stg[i];
         }
     }
 
-    /* Process remaining operators */
-    while (optop >= 0)
+    while(optop >= 0)
     {
-        generate(operators[optop--]);
+        char a[10], b[10], res[10];
+
+        strcpy(b, opera[top--]);
+        strcpy(a, opera[top--]);
+
+        sprintf(res, "t%d", temp++);
+        strcpy(opera[++top], res);
+
+        gen(oprand[optop--], a, b, res);
     }
 
-    printf("Result = %s\n", stack[top]);
-
-    return 0;
+    printf("Result = %s\n", opera[top]);
 }
