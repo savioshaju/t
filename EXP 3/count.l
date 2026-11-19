@@ -13,11 +13,8 @@ lines++; characters++;
 characters += yyleng;
 }
 
-[^
-
-
-
- \t\n]+ { words++;
+[^ \t\n]+ { 
+words++;
 characters += yyleng;
 }
 

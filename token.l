@@ -29,9 +29,6 @@ int|float|char|double|void|return|if|else|for|while {
 
 [\t\n ]+ ;
 
-[A-Za-z0-9_]+@[A-Za-z0-9_]+\.[A-Za-z0-9_]+ {
-    printf("%s : EMAIL\n",yytext);
-}
 
 . {
     printf("%s : INVALID\n",yytext);

@@ -61,6 +61,7 @@ void sort(int set[],int len){
         }
     }
 }
+ 
 void main(){
     int n,m;
     printf("Enter the number of states : ");
